@@ -4,11 +4,14 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour {
 
-	private float[] rhythm = new float[] {8, 8, 8, 3, 1, 2, 2};
+	private float[] rhythm = new float[] {8, 8, 3, 1, 2, 2, 8};
 	private int rhythmIndex = 0;
 	private float time;
+	private bool timeRunning;
 
 	public AudioClip[] slamSounds;
+	public AudioClip hey;
+	private bool heying;
 	private AudioSource audioSource;
 
 	public int combo = 0;
@@ -29,14 +32,22 @@ public class GameManager : MonoBehaviour {
 	void Update () 
 	{
 		// DEBUG
-		debugText.text = "" + (time - rhythm [rhythmIndex]);
+		if (rhythmIndex < rhythm.Length)
+			debugText.text = "" + (time - rhythm [rhythmIndex]);
 		// DEBUG
 
-		time += Time.deltaTime * 8;
-		if (Input.GetKeyDown(KeyCode.Space))
+		if (timeRunning)
+			time += Time.deltaTime * 8;
+		
+		if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
 		{
+			if (rhythmIndex == 0 && !timeRunning)
+			{
+				Beat ();
+				timeRunning = true;
+			}
 			// Player hit key on rhythm
-			if (Mathf.Abs(time - rhythm[rhythmIndex]) <= 1.0f || rhythmIndex == 0)
+			else if (timeRunning && Mathf.Abs(time - rhythm[rhythmIndex]) <= 1.0f)
 			{
 				Beat ();
 				rhythmIndex++;
@@ -45,6 +56,7 @@ public class GameManager : MonoBehaviour {
 				{
 					combo++;
 					rhythmIndex = 0;
+					heying = false;
 				}
 			}
 			// player did not hit the key on rhythm
@@ -53,8 +65,15 @@ public class GameManager : MonoBehaviour {
 				// Reset all variables
 				rhythmIndex = 0;
 				combo = 0;
+				timeRunning = false;
 			}
 			time = 0;
+		}
+
+		if (rhythmIndex == 6 && !heying)
+		{
+			Invoke ("Hey", rhythm [rhythmIndex] / 16.0f);
+			heying = true;
 		}
 		/*if (time >= rhythm[rhythmIndex])
 		{
@@ -72,9 +91,14 @@ public class GameManager : MonoBehaviour {
 	{
 		locker.Activate (0.25f, 0.05f);
 		cameraShake.Activate (0.1f, 0.10f);
-		RandomizeSFX (0.5f);
+		RandomizeSFX (0.5f, slamSounds [Random.Range (0, slamSounds.Length)]);
 
 		StartCoroutine ("BeatCR");
+	}
+
+	private void Hey()
+	{
+		RandomizeSFX (0.1f, hey);
 	}
 
 	private IEnumerator BeatCR()
@@ -84,9 +108,9 @@ public class GameManager : MonoBehaviour {
 		sr.color = Color.white;
 	}
 
-	private void RandomizeSFX(float pitchOffset)
+	private void RandomizeSFX(float pitchOffset, AudioClip clip)
 	{
-		audioSource.clip = slamSounds [Random.Range (0, slamSounds.Length)];
+		audioSource.clip = clip;
 		audioSource.pitch = Random.Range (-pitchOffset, pitchOffset) + 1.0f;
 		audioSource.Play ();
 	}
