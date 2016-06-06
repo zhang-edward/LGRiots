@@ -18,26 +18,43 @@ public class GameManager : MonoBehaviour {
 	public Shake locker;
 	public Shake cameraShake;
 
-	public Text debugText;
+	public Transform indicator;
 
-	private SpriteRenderer sr;
+	public Text scoreText;
+
+	//private SpriteRenderer sr;
 
 	// Use this for initialization
 	void Start () {
-		sr = this.GetComponent<SpriteRenderer> ();
+		//sr = this.GetComponent<SpriteRenderer> ();
 		audioSource = this.GetComponent<AudioSource> ();
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		// DEBUG
+		/* DEBUG
 		if (rhythmIndex < rhythm.Length)
-			debugText.text = "" + (time - rhythm [rhythmIndex]);
-		// DEBUG
+			scoreText.text = "" + (time - rhythm [rhythmIndex]);
+		DEBUG */
+		if (combo == 0)
+			scoreText.enabled = false;
+		else
+		{
+			scoreText.enabled = true;
+			scoreText.text = "" + combo;
+		}
 
 		if (timeRunning)
+		{
 			time += Time.deltaTime * 8;
+			float scale = Mathf.Sqrt(Mathf.Abs (time - rhythm [rhythmIndex])) + .5f;
+			indicator.localScale = new Vector3 (scale, scale);
+		}
+		else
+		{
+			indicator.localScale = new Vector3 (1, 1);
+		}
 		
 		if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
 		{
@@ -103,9 +120,9 @@ public class GameManager : MonoBehaviour {
 
 	private IEnumerator BeatCR()
 	{
-		sr.color = Color.black;
+		//sr.color = Color.black;
 		yield return new WaitForSeconds (0.05f);
-		sr.color = Color.white;
+		//sr.color = Color.white;
 	}
 
 	private void RandomizeSFX(float pitchOffset, AudioClip clip)
